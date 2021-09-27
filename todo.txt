@@ -1,0 +1,3 @@
+- House in function
+- Understand templates of most common website schema (o.e. what heading levels are relevant...)
+- Integrate google search feature to return top n urls, and then print body text from them

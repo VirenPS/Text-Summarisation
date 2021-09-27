@@ -4,3 +4,4 @@ attempt3_regex_test.py
 html_body_test.txt
 my_utils.py
 __pycache__/
+temp*.txt
