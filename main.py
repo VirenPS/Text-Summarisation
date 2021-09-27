@@ -8,6 +8,7 @@ from bs4 import BeautifulSoup
 from my_utils import write_to_file
 
 url = 'https://webflow.com/blog/website-ideas'
+# url = 'https://www.investopedia.com/articles/pf/08/make-money-in-business.asp'
 
 scraped_data = urllib.request.urlopen(url)
 
@@ -58,7 +59,6 @@ body = parsed_article.find('body')
 # print(body_string)
 
 # convert <h*> tags into <p>**
-
 # h1 into <p>*
 # h2 into <p>**
 # h3 into <p>***
@@ -82,19 +82,32 @@ regex_text_clean = re.sub(r'</h6>.{0,}', '******<p>', regex_text_clean)
 
 soup = BeautifulSoup(regex_text_clean, 'html.parser')
 
-paragraphs = soup.find_all('p')
-
 article_text = ""
 
-for p in paragraphs:
-    article_text += p.text
+paragraph_list = []
+
+a = soup.find_all('p')
+
+for i in a:
+    article_text += i.text
+
+seen = set()
+answer = []
+
+for line in article_text.splitlines():
+    if (line not in seen) or '*' in line:
+        seen.add(line)
+        answer.append(line)
+
+string = '\n'.join(answer)
 
 # Removing Square Brackets and Extra Spaces
-article_text = re.sub(r'\[[0-9]*\]', ' ', article_text)
-article_text = re.sub(r'\s+', ' ', article_text)
+article_text = re.sub(r'\[[0-9]*\]', ' ', string)
+article_text = re.sub(r'[*]+[\s]+[*]+', '', article_text)
+article_text = re.sub(r' +', ' ', article_text)
+article_text = re.sub(r'\n+ ', '\n', article_text)
+article_text = re.sub(r'\n+', '\n', article_text)
 
-# Removing special characters and digits
-formatted_article_text = re.sub('[^a-zA-Z]', ' ', article_text )
-formatted_article_text = re.sub(r'\s+', ' ', formatted_article_text)
+print(article_text)
 
-print(formatted_article_text)
+write_to_file('temp.txt', article_text)
