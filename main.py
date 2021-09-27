@@ -1,6 +1,6 @@
 import heapq
 import re
-import urllib.request
+from urllib.request import Request, urlopen
 
 import nltk
 from bs4 import BeautifulSoup
@@ -18,9 +18,12 @@ def extract_key_points(url, extract_by_numbers=False):
     #     'Accept-Language': 'en-US,en;q=0.8',
     #     'Connection': 'keep-alive'}
 
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.3'}
+    reg_url = 'https:XXXXOOOO'
 
+    req = Request(url=reg_url, headers=headers)
 
-    scraped_data = urllib.request.urlopen(url)
+    scraped_data = urlopen(url)
 
     article = scraped_data.read()
 
@@ -115,7 +118,7 @@ def extract_key_points(url, extract_by_numbers=False):
 
     # Removing Square Brackets and Extra Spaces
     article_text = re.sub(r'\[[0-9]*\]', ' ', string)
-    article_text = re.sub(r'[*]+[\s]+[*]+', '', article_text)
+    article_text = re.sub(r'[*]+[\s]+[*]+ ', '', article_text)
     article_text = re.sub(r' +', ' ', article_text)
     article_text = re.sub(r'><', '', article_text)
     article_text = re.sub(r'\n+ ', '\n', article_text)
@@ -123,7 +126,7 @@ def extract_key_points(url, extract_by_numbers=False):
 
     # Extract Heading Titles
     # header = re.findall(r'[*]+<\n([\s\S]*?)>[*]+\n.', article_text)
-    article_summary = re.findall(r'[*]+<[\s\S]([\s\S]*?)>[*]+[\s\S]', article_text)
+    article_summary_str = re.findall(r'[*]+<[\s\S]([\s\S]*?)>[*]+[\s\S]', article_text)
 
     if extract_by_numbers:
         key_points = []
@@ -131,12 +134,12 @@ def extract_key_points(url, extract_by_numbers=False):
             try:
                 if has_numbers(i[0:3]):
                     key_points.append(i)
-            except:
+            except Exception as e:
+                print(e)
                 pass
-        return key_points
+        article_summary_str = ''.join(extract_key_points(url, True))
 
-    write_to_file('temp2.txt', key_points)
-    return article_summary
+    return article_summary_str
 
     # article_summary_list = unique_lines_as_list(article_summary)
 
@@ -147,18 +150,15 @@ def extract_key_points(url, extract_by_numbers=False):
 
 if __name__ == '__main__':
     # url = r'https://www.investopedia.com/articles/pf/08/make-money-in-business.asp'
-    # url = r'https://webflow.com/blog/website-ideas'
+    url = r'https://webflow.com/blog/website-ideas'
 
     # Fix header issue and investigate
     # url = r'https://www.entrepreneur.com/article/293954'
     # url = r'https://www.lifehack.org/articles/lifestyle/how-to-be-successful-in-life.html'
-
     # url = r'https://freshysites.com/web-design-development/most-popular-websites/'
 
     # Small issue highlighted by blog.hubspot.com below - TODO 1st heading/ Main title clash causing 1st heading dropoff
-    url = r'https://blog.hubspot.com/marketing/best-website-designs-list'
+    # url = r'https://blog.hubspot.com/marketing/best-website-designs-list'
+    # url = r'https://www.upwork.com/ab/find-work/domestic'
 
     key_points_str = ''.join(extract_key_points(url, True))
-    write_to_file('temp.txt', key_points_str)
-
-    print(key_points_str)
