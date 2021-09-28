@@ -111,12 +111,12 @@ def run_google_search(search, number_of_results = 5, top_lvl_domain='.co.uk'):
     return search_results_url_list
 
 
-def extract_content_by_google_search(google_search, extract_by_numbers_only):
+def extract_content_by_google_search(google_search, extract_by_numbers_only=False):
     results = run_google_search(google_search)
-
     index = 0
+    
     for url in results:
-        extract_key_points(url, True, google_search + '_' + str(index))
+        extract_key_points(url, extract_by_numbers_only, google_search + '_' + str(index))
         index += 1
 
     print('Completed')
@@ -140,6 +140,6 @@ if __name__ == '__main__':
     # url = r'https://freshysites.com/web-design-development/most-popular-websites/'
     # content = extract_key_points(url, True, 2)
 
-    extract_content_by_google_search('Top 10 most useful skills')
+    extract_content_by_google_search('Top 10 most useful skills', True)
 
 
