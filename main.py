@@ -6,78 +6,24 @@ import nltk
 import requests
 from bs4 import BeautifulSoup
 
-from my_utils import (has_numbers, unique_lines_as_list,
-                      unique_lines_as_string, write_to_file)
+from utils import (has_numbers, unique_lines_as_list, unique_lines_as_string,
+                   write_to_file)
 
 
-def extract_key_points(url, extract_by_numbers=False):
-    # # TODO Address and understand headers requirements of requests.
-    # hdr = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',
-    #     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-    #     'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
-    #     'Accept-Encoding': 'none',
-    #     'Accept-Language': 'en-US,en;q=0.8',
-    #     'Connection': 'keep-alive'}
-
-    # url = 'http://www.ichangtou.com/#company:data_000008.html'
+def extract_html_from_url(url):
     headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.61 Safari/537.36'}
-
     page = requests.get(url, headers=headers)
     parsed_article = BeautifulSoup(page.text, 'lxml')
+    return parsed_article
 
-    # print(parsed_article)
-
-    # html_components = ['div', 'h1', 'h2', 'h3', 'h4']
-
-    # Find number of each element type and build a dictionary
-
-
-    # write_to_file('html_body_test.txt',content=paragraphs.prettify())
-    # print(paragraphs)
-
-    # # create a sorted unique list of all html tags
-    # html_tags = []
-    # for tag in body.findAll(True):
-    #     html_tags.append(tag.name)
-
-    # unique_html_tags = sorted(list(set(html_tags)))
-    # html_header_tags = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']
-
-    # header_tags_contained = sorted(list(set(unique_html_tags).intersection(html_header_tags)))
-
-    # # print(header_tags_contained)
-
-
-    # temp = body.find_all('h2')
-    # # print(type(temp))
-
-    # container = []
-
-    # for i in header_tags_contained:
-    #     temp_list = []
-    #     for tag in body.find_all(i):
-    #         temp_list.append(tag.text)
-
-    #     container.append(temp_list)
-
-    # print(container)
-
-
-    # body_string = body.prettify()
-
-    # print(body_string)
-
-    # convert <h*> tags into <p>**
-    # h1 into <p>*
-    # h2 into <p>**
-    # h3 into <p>***
-    # h4 into <p>****
-
+def extract_key_points(url, extract_by_numbers_only=False, filename='data_grab'):
+    # # TODO Address and understand headers requirements of requests.
+    parsed_article = extract_html_from_url(url)
     body = parsed_article.find('body')
-
     body_string = body.prettify()
 
-    # replace heading tags with fancy paragraphs, so we can later identify heading level in text extracted / order of heading to paragraph.
+    # replace heading tags with coded paragraphs, so we can later identify heading level in text extracted / order of heading to paragraph.
+    # heading start
     regex_text_clean = re.sub(r'<h1.{0,}', '<p>*<', body_string)
     regex_text_clean = re.sub(r'<h2.{0,}', '<p>**<', regex_text_clean)
     regex_text_clean = re.sub(r'<h3.{0,}', '<p>***<', regex_text_clean)
@@ -85,6 +31,7 @@ def extract_key_points(url, extract_by_numbers=False):
     regex_text_clean = re.sub(r'<h5.{0,}', '<p>*****<', regex_text_clean)
     regex_text_clean = re.sub(r'<h6.{0,}', '<p>******<', regex_text_clean)
 
+    # heading end
     regex_text_clean = re.sub(r'</h1>.{0,}', '>*<p>', regex_text_clean)
     regex_text_clean = re.sub(r'</h2>.{0,}', '>**<p>', regex_text_clean)
     regex_text_clean = re.sub(r'</h3>.{0,}', '>***<p>', regex_text_clean)
@@ -113,7 +60,7 @@ def extract_key_points(url, extract_by_numbers=False):
     article_text = re.sub(r'\n+ ', '\n', article_text)
     article_text = re.sub(r'\n+', '\n', article_text)
 
-    if extract_by_numbers:
+    if extract_by_numbers_only:
         key_points = []
         article_summary_str = re.findall(r'[*]+<[\s\S]([\s\S]*?)>[*]+[\s\S]', article_text)
         for i in article_summary_str:
@@ -129,6 +76,8 @@ def extract_key_points(url, extract_by_numbers=False):
         article_text = re.sub(r'[ \n]{3,}', '\n\n', article_text)
         article_summary_str = ''.join(article_text)
 
+    write_to_file(f'{filename}.txt', article_summary_str)
+
     return article_summary_str
 
     # article_summary_list = unique_lines_as_list(article_summary)
@@ -136,6 +85,41 @@ def extract_key_points(url, extract_by_numbers=False):
     # print(article_summary_list)
 
     # print(header)
+
+
+def run_google_search(search, number_of_results = 5, top_lvl_domain='.co.uk'):
+
+    if top_lvl_domain[0] != '.':
+        top_lvl_domain = '.' + top_lvl_domain
+
+    # print(top_lvl_domain)
+
+    word_list_exc_punc = re.split(r'\W+', search)
+    search_string = '+'.join(word_list_exc_punc)
+
+    url = rf'https://www.google{top_lvl_domain}/search?q={search_string}'
+
+    soup = extract_html_from_url(url)
+
+    search_results_list = (soup.find_all("div", {"class": "g"}))[0:number_of_results]
+
+    search_results_url_list = []
+
+    for result in search_results_list:
+        search_results_url_list.append(result.find('a')['href'])
+
+    return search_results_url_list
+
+
+def extract_content_by_google_search(google_search, extract_by_numbers_only):
+    results = run_google_search(google_search)
+
+    index = 0
+    for url in results:
+        extract_key_points(url, True, google_search + '_' + str(index))
+        index += 1
+
+    print('Completed')
 
 
 if __name__ == '__main__':
@@ -153,6 +137,9 @@ if __name__ == '__main__':
     # url = r'https://blog.hubspot.com/marketing/best-website-designs-list'
     # url = r'https://www.upwork.com/ab/find-work/domestic'
 
-    url = r'https://freshysites.com/web-design-development/most-popular-websites/'
-    content = extract_key_points(url, False)
-    write_to_file('data_grab.txt', content)
+    # url = r'https://freshysites.com/web-design-development/most-popular-websites/'
+    # content = extract_key_points(url, True, 2)
+
+    extract_content_by_google_search('Top 10 most useful skills')
+
+
