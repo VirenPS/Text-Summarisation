@@ -1,8 +1,9 @@
 import heapq
 import re
-from urllib.request import Request, urlopen
 
 import nltk
+# from urllib.request import Request, urlopen
+import requests
 from bs4 import BeautifulSoup
 
 from my_utils import (has_numbers, unique_lines_as_list,
@@ -18,17 +19,13 @@ def extract_key_points(url, extract_by_numbers=False):
     #     'Accept-Language': 'en-US,en;q=0.8',
     #     'Connection': 'keep-alive'}
 
-    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.3'}
-    reg_url = 'https:XXXXOOOO'
+    # url = 'http://www.ichangtou.com/#company:data_000008.html'
+    headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.61 Safari/537.36'}
 
-    req = Request(url=reg_url, headers=headers)
+    page = requests.get(url, headers=headers)
+    parsed_article = BeautifulSoup(page.text, 'lxml')
 
-    scraped_data = urlopen(url)
-
-    article = scraped_data.read()
-
-    parsed_article = BeautifulSoup(article, 'lxml')
-
+    # print(parsed_article)
 
     # html_components = ['div', 'h1', 'h2', 'h3', 'h4']
 
@@ -106,14 +103,6 @@ def extract_key_points(url, extract_by_numbers=False):
     for i in a:
         article_text += i.text
 
-    # seen = set()
-    # answer = []
-
-    # for line in article_text.splitlines():
-    #     if (line not in seen) or '*' in line:
-    #         seen.add(line)
-    #         answer.append(line)
-
     string = unique_lines_as_string(article_text)
 
     # Removing Square Brackets and Extra Spaces
@@ -151,17 +140,19 @@ def extract_key_points(url, extract_by_numbers=False):
 
 if __name__ == '__main__':
     # url = r'https://www.investopedia.com/articles/pf/08/make-money-in-business.asp'
-    url = r'https://webflow.com/blog/website-ideas'
+    # url = r'https://webflow.com/blog/website-ideas'
+    # url = r'https://www.google.com/search?q=ipl+score&oq=ipl&aqs=chrome.0.69i59j46i131i433i512j0i131i433i512j46i199i291i433i512j69i60l4.616j0j7&sourceid=chrome&ie=UTF-8#sie=m;/g/11nxsks048;5;/m/03b_lm1;dt;fp;1;;'
+    # url = r'https://www.google.com/search?q=ipl+score&oq=ipl'
     # url = 'https://docs.python.org/3/howto/urllib2.html'
+    # url = r'https://www.entrepreneur.com/article/293954'
 
     # Fix header issue and investigate
-    # url = r'https://www.entrepreneur.com/article/293954'
     # url = r'https://www.lifehack.org/articles/lifestyle/how-to-be-successful-in-life.html'
-    # url = r'https://freshysites.com/web-design-development/most-popular-websites/'
 
     # Small issue highlighted by blog.hubspot.com below - TODO 1st heading/ Main title clash causing 1st heading dropoff
     # url = r'https://blog.hubspot.com/marketing/best-website-designs-list'
     # url = r'https://www.upwork.com/ab/find-work/domestic'
 
+    url = r'https://freshysites.com/web-design-development/most-popular-websites/'
     content = extract_key_points(url, False)
     write_to_file('data_grab.txt', content)
