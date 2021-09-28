@@ -6,8 +6,8 @@ import nltk
 import requests
 from bs4 import BeautifulSoup
 
-from utils import (has_numbers, unique_lines_as_list, unique_lines_as_string,
-                   write_to_file)
+from utils import (has_numbers, overwrite_file, unique_lines_as_list,
+                   unique_lines_as_string)
 
 
 def extract_html_from_url(url):
@@ -76,18 +76,12 @@ def extract_key_points(url, extract_by_numbers_only=False, filename='data_grab')
         article_text = re.sub(r'[ \n]{3,}', '\n\n', article_text)
         article_summary_str = ''.join(article_text)
 
-    write_to_file(f'{filename}.txt', article_summary_str)
+    overwrite_file(f'{filename}.txt', url + '\n\n' + article_summary_str)
 
     return article_summary_str
 
-    # article_summary_list = unique_lines_as_list(article_summary)
 
-    # print(article_summary_list)
-
-    # print(header)
-
-
-def run_google_search(search, number_of_results = 5, top_lvl_domain='.co.uk'):
+def run_google_search(search, number_of_results=5, top_lvl_domain='.com'):
 
     if top_lvl_domain[0] != '.':
         top_lvl_domain = '.' + top_lvl_domain
@@ -111,10 +105,10 @@ def run_google_search(search, number_of_results = 5, top_lvl_domain='.co.uk'):
     return search_results_url_list
 
 
-def extract_content_by_google_search(google_search, extract_by_numbers_only=False):
-    results = run_google_search(google_search)
+def extract_content_by_google_search(google_search, number_of_results=5, extract_by_numbers_only=False):
+    results = run_google_search(google_search, number_of_results)
     index = 0
-    
+
     for url in results:
         extract_key_points(url, extract_by_numbers_only, google_search + '_' + str(index))
         index += 1
@@ -122,7 +116,7 @@ def extract_content_by_google_search(google_search, extract_by_numbers_only=Fals
     print('Completed')
 
 
-if __name__ == '__main__':
+# if __name__ == '__main__':
     # url = r'https://www.investopedia.com/articles/pf/08/make-money-in-business.asp'
     # url = r'https://webflow.com/blog/website-ideas'
     # url = r'https://www.google.com/search?q=ipl+score&oq=ipl&aqs=chrome.0.69i59j46i131i433i512j0i131i433i512j46i199i291i433i512j69i60l4.616j0j7&sourceid=chrome&ie=UTF-8#sie=m;/g/11nxsks048;5;/m/03b_lm1;dt;fp;1;;'
@@ -140,6 +134,9 @@ if __name__ == '__main__':
     # url = r'https://freshysites.com/web-design-development/most-popular-websites/'
     # content = extract_key_points(url, True, 2)
 
-    extract_content_by_google_search('Top 10 most useful skills', True)
+
+if __name__ == '__main__':
+    google_search = 'Top 10 places to visit'
+    extract_content_by_google_search(google_search, 5, False)
 
 

@@ -1,4 +1,4 @@
-def write_to_file(filename, content, directory=''):
+def overwrite_file(filename, content, directory=''):
     if '.txt' not in filename:
         filename = filename + '.txt'
 
