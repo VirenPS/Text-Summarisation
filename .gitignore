@@ -4,4 +4,6 @@ attempt3_regex_test.py
 data_grab*.txt
 html_body_test.txt
 __pycache__/
+
 temp*
+top 10*

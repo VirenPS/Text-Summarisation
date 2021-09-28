@@ -29,3 +29,8 @@ def unique_lines_as_string(text_string):
 def has_numbers(inputString):
     return any(char.isdigit() for char in inputString)
 
+
+def remove_dupl_pres_order(input_list):
+    seen = set()
+    seen_add = seen.add
+    return [x for x in input_list if not (x in seen or seen_add(x))]

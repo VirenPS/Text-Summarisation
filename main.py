@@ -6,8 +6,8 @@ import nltk
 import requests
 from bs4 import BeautifulSoup
 
-from utils import (has_numbers, overwrite_file, unique_lines_as_list,
-                   unique_lines_as_string)
+from utils import (has_numbers, overwrite_file, remove_dupl_pres_order,
+                   unique_lines_as_list, unique_lines_as_string)
 
 
 def extract_html_from_url(url):
@@ -16,7 +16,9 @@ def extract_html_from_url(url):
     parsed_article = BeautifulSoup(page.text, 'lxml')
     return parsed_article
 
-def extract_key_points(url, extract_by_numbers_only=False, filename='data_grab'):
+def extract_content_by_url(url, extract_by_numbers_only=False, punc_in_first_three_chars=True, filename='data_grab'):
+    # punc_in_first_three_chars=True can only be run when extract_by_numbers_only=True
+
     # # TODO Address and understand headers requirements of requests.
     parsed_article = extract_html_from_url(url)
     body = parsed_article.find('body')
@@ -63,12 +65,20 @@ def extract_key_points(url, extract_by_numbers_only=False, filename='data_grab')
     article_text = re.sub(r'[<>*]+', '', article_text)
     article_summary_str = re.sub(r'[ \n]{3,}', '\n\n', article_text)
 
+    # TODO: Could be cleaned up. Duplicates just not added.
     if extract_by_numbers_only:
         key_points = []
+
         for i in article_summary_str.splitlines():
             if has_numbers(i[0:2]):
                 key_points.append(i)
-        article_summary_str = '\n'.join(key_points)
+
+        if punc_in_first_three_chars:
+            key_points = [s for s in key_points if any(xs in s[0:4] for xs in [',', '.', '#'])]
+
+        # print(key_points)
+        unique_key_points = remove_dupl_pres_order(key_points)
+        article_summary_str = '\n'.join(unique_key_points)
 
         filename += '_EBN'
 
@@ -76,8 +86,29 @@ def extract_key_points(url, extract_by_numbers_only=False, filename='data_grab')
 
     return article_summary_str
 
+def extract_html_from_url(url):
+    headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.61 Safari/537.36'}
+    page = requests.get(url, headers=headers)
+    parsed_article = BeautifulSoup(page.text, 'lxml')
+    return parsed_article
 
-def run_google_search(search, number_of_results=5, top_lvl_domain='.com'):
+def extract_headers_by_url(url, extract_by_numbers_only=False, filename='data_grab'):
+    # # TODO Address and understand headers requirements of requests.
+    parsed_article = extract_html_from_url(url)
+    body = parsed_article.find('body')
+
+    headers_set = set()
+
+    for i in parsed_article.find_all('h3'):
+        if i.text not in headers_set:
+            headers_set.add(i.text)
+
+    for i in headers_set:
+        print(i,'\n-----------------------')
+
+    # return
+
+def run_google_search(search, top_lvl_domain='.com'):
 
     if top_lvl_domain[0] != '.':
         top_lvl_domain = '.' + top_lvl_domain
@@ -91,7 +122,7 @@ def run_google_search(search, number_of_results=5, top_lvl_domain='.com'):
 
     soup = extract_html_from_url(url)
 
-    search_results_list = (soup.find_all("div", {"class": "g"}))[0:number_of_results]
+    search_results_list = (soup.find_all("div", {"class": "g"}))
 
     search_results_url_list = []
 
@@ -101,38 +132,25 @@ def run_google_search(search, number_of_results=5, top_lvl_domain='.com'):
     return search_results_url_list
 
 
-def extract_content_by_google_search(google_search, number_of_results=5, extract_by_numbers_only=False):
-    results = run_google_search(google_search, number_of_results)
-    index = 0
+def extract_content_by_google_search(google_search, number_of_results=100, extract_by_numbers_only=False):
+    all_urls = list(set(run_google_search(google_search)))
+    results = all_urls[0:min(len(all_urls), number_of_results)]
 
+    index = 0
     for url in results:
-        extract_key_points(url, extract_by_numbers_only, google_search + '_' + str(index))
+        extract_content_by_url(url, extract_by_numbers_only, google_search + '_' + str(index))
         index += 1
 
     print('Completed')
 
 
-# if __name__ == '__main__':
-    # url = r'https://www.investopedia.com/articles/pf/08/make-money-in-business.asp'
-    # url = r'https://webflow.com/blog/website-ideas'
-    # url = r'https://www.google.com/search?q=ipl+score&oq=ipl&aqs=chrome.0.69i59j46i131i433i512j0i131i433i512j46i199i291i433i512j69i60l4.616j0j7&sourceid=chrome&ie=UTF-8#sie=m;/g/11nxsks048;5;/m/03b_lm1;dt;fp;1;;'
-    # url = r'https://www.google.com/search?q=ipl+score&oq=ipl'
-    # url = 'https://docs.python.org/3/howto/urllib2.html'
-    # url = r'https://www.entrepreneur.com/article/293954'
-
-    # Fix header issue and investigate
-    # url = r'https://www.lifehack.org/articles/lifestyle/how-to-be-successful-in-life.html'
-
-    # Small issue highlighted by blog.hubspot.com below - TODO 1st heading/ Main title clash causing 1st heading dropoff
-    # url = r'https://blog.hubspot.com/marketing/best-website-designs-list'
-    # url = r'https://www.upwork.com/ab/find-work/domestic'
-
-    # url = r'https://freshysites.com/web-design-development/most-popular-websites/'
-    # content = extract_key_points(url, True, 2)
-
-
 if __name__ == '__main__':
-    google_search = 'Top 10 places to visit'
-    extract_content_by_google_search(google_search, 5, True)
+    google_search = 'top 10 ways to make money'
+    # extract_content_by_google_search(google_search, 5, True)
 
+    # url = r'https://www.inc.com/rhett-power/10-ways-make-earn-money-fast.html'
+    # url = r'https://www.savethestudent.org/make-money/10-quick-cash-injections.html'
+    url = 'https://www.oberlo.co.uk/blog/how-to-make-money-online'
 
+    # extract_headers_by_url(url)
+    a = extract_content_by_url(url=url, extract_by_numbers_only=True)

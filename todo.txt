@@ -1,3 +1,29 @@
-- House in function
 - Understand templates of most common website schema (o.e. what heading levels are relevant...)
-- Integrate google search feature to return top n urls, and then print body text from them
+    - moneysavingexpert - has ids with schema: #needtoknow1-3   #section-header
+
+x Integrate google search feature to return top n urls, and then print body text from them
+
+
+https://www.moneysavingexpert.com/family/boost-your-income/#needtoknow1-5
+
+
+Test urls:
+# if __name__ == '__main__':
+    # url = r'https://www.investopedia.com/articles/pf/08/make-money-in-business.asp'
+    # url = r'https://webflow.com/blog/website-ideas'
+    # url = r'https://www.google.com/search?q=ipl+score&oq=ipl&aqs=chrome.0.69i59j46i131i433i512j0i131i433i512j46i199i291i433i512j69i60l4.616j0j7&sourceid=chrome&ie=UTF-8#sie=m;/g/11nxsks048;5;/m/03b_lm1;dt;fp;1;;'
+    # url = r'https://www.google.com/search?q=ipl+score&oq=ipl'
+    # url = 'https://docs.python.org/3/howto/urllib2.html'
+    # url = r'https://www.entrepreneur.com/article/293954'
+
+    # Fix header issue and investigate
+    # url = r'https://www.lifehack.org/articles/lifestyle/how-to-be-successful-in-life.html'
+
+    # Small issue highlighted by blog.hubspot.com below - TODO 1st heading/ Main title clash causing 1st heading dropoff
+    # url = r'https://blog.hubspot.com/marketing/best-website-designs-list'
+    # url = r'https://www.upwork.com/ab/find-work/domestic'
+
+    # url = r'https://freshysites.com/web-design-development/most-popular-websites/'
+    # content = extract_key_points(url, True, 2)
+
+
