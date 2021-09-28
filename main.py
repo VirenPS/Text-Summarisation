@@ -27,7 +27,7 @@ def extract_key_points(url, extract_by_numbers=False):
 
     article = scraped_data.read()
 
-    parsed_article = BeautifulSoup(article,'lxml')
+    parsed_article = BeautifulSoup(article, 'lxml')
 
 
     # html_components = ['div', 'h1', 'h2', 'h3', 'h4']
@@ -124,20 +124,21 @@ def extract_key_points(url, extract_by_numbers=False):
     article_text = re.sub(r'\n+ ', '\n', article_text)
     article_text = re.sub(r'\n+', '\n', article_text)
 
-    # Extract Heading Titles
-    # header = re.findall(r'[*]+<\n([\s\S]*?)>[*]+\n.', article_text)
-    article_summary_str = re.findall(r'[*]+<[\s\S]([\s\S]*?)>[*]+[\s\S]', article_text)
-
     if extract_by_numbers:
         key_points = []
-        for i in article_summary:
+        article_summary_str = re.findall(r'[*]+<[\s\S]([\s\S]*?)>[*]+[\s\S]', article_text)
+        for i in article_summary_str:
             try:
                 if has_numbers(i[0:3]):
                     key_points.append(i)
             except Exception as e:
                 print(e)
                 pass
-        article_summary_str = ''.join(extract_key_points(url, True))
+        article_summary_str = ''.join(key_points)
+    else:
+        article_text = re.sub(r'[<>*]+', '', article_text)
+        article_text = re.sub(r'[ \n]{3,}', '\n\n', article_text)
+        article_summary_str = ''.join(article_text)
 
     return article_summary_str
 
@@ -151,6 +152,7 @@ def extract_key_points(url, extract_by_numbers=False):
 if __name__ == '__main__':
     # url = r'https://www.investopedia.com/articles/pf/08/make-money-in-business.asp'
     url = r'https://webflow.com/blog/website-ideas'
+    # url = 'https://docs.python.org/3/howto/urllib2.html'
 
     # Fix header issue and investigate
     # url = r'https://www.entrepreneur.com/article/293954'
@@ -161,4 +163,5 @@ if __name__ == '__main__':
     # url = r'https://blog.hubspot.com/marketing/best-website-designs-list'
     # url = r'https://www.upwork.com/ab/find-work/domestic'
 
-    key_points_str = ''.join(extract_key_points(url, True))
+    content = extract_key_points(url, True)
+    write_to_file('data_grab2.txt', content)
