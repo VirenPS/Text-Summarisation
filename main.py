@@ -163,5 +163,5 @@ if __name__ == '__main__':
     # url = r'https://blog.hubspot.com/marketing/best-website-designs-list'
     # url = r'https://www.upwork.com/ab/find-work/domestic'
 
-    content = extract_key_points(url, True)
-    write_to_file('data_grab2.txt', content)
+    content = extract_key_points(url, False)
+    write_to_file('data_grab.txt', content)
