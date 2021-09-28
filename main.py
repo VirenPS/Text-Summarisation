@@ -60,21 +60,17 @@ def extract_key_points(url, extract_by_numbers_only=False, filename='data_grab')
     article_text = re.sub(r'\n+ ', '\n', article_text)
     article_text = re.sub(r'\n+', '\n', article_text)
 
+    article_text = re.sub(r'[<>*]+', '', article_text)
+    article_summary_str = re.sub(r'[ \n]{3,}', '\n\n', article_text)
+
     if extract_by_numbers_only:
         key_points = []
-        article_summary_str = re.findall(r'[*]+<[\s\S]([\s\S]*?)>[*]+[\s\S]', article_text)
-        for i in article_summary_str:
-            try:
-                if has_numbers(i[0:3]):
-                    key_points.append(i)
-            except Exception as e:
-                print(e)
-                pass
-        article_summary_str = ''.join(key_points)
-    else:
-        article_text = re.sub(r'[<>*]+', '', article_text)
-        article_text = re.sub(r'[ \n]{3,}', '\n\n', article_text)
-        article_summary_str = ''.join(article_text)
+        for i in article_summary_str.splitlines():
+            if has_numbers(i[0:2]):
+                key_points.append(i)
+        article_summary_str = '\n'.join(key_points)
+
+        filename += '_EBN'
 
     overwrite_file(f'{filename}.txt', url + '\n\n' + article_summary_str)
 
@@ -137,6 +133,6 @@ def extract_content_by_google_search(google_search, number_of_results=5, extract
 
 if __name__ == '__main__':
     google_search = 'Top 10 places to visit'
-    extract_content_by_google_search(google_search, 5, False)
+    extract_content_by_google_search(google_search, 5, True)
 
 
