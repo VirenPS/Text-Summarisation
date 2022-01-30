@@ -1,6 +1,7 @@
-# Text-Summarisation
+# Summarisation of content of Websites by URL or by Google Search using BS4.
 
-Using a combination of BS4 (Beautiful Soup) to extract prices of real estate overtime by location and property parameters (sale/rent, flat/semi-detached house/detached house) from Rightmove and appended the data to a pandas df / csv. This data then collated daily having scheduled the extraction to run on interval using a local cron job. 
+## Cycles through a list of links and summarises most common keywords and outputs the data in a table.
 
-## Next steps:
-Visualisation then possible of trends over time.
+Input: Options to search by keywords into google (top n websites from search results) or by entering a URL.
+
+Provides summarisation results as a csv.
